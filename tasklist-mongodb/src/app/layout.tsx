@@ -1,10 +1,12 @@
 // tasklist-mongodb/src/app/layout.tsx
 
 import "./globals.css"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
 import Sidebar from "@/components/ui/sidebar"
+import { Inter } from "next/font/google"
+
+import type { Metadata } from "next"
 import { Toaster } from "sonner"
+
 import { TasksProvider } from "@/contexts/TaskProvider"
 import { TagsProvider } from "@/contexts/TagsProvider"
 
