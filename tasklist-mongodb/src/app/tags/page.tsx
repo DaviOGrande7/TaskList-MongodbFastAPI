@@ -1,85 +1,75 @@
-"use client"
+// tasklist-mongodb/src/app/tags/page.tsx
 
-import { useState } from "react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { useTags } from "@/contexts/TagsProvider"
-import { useTasks } from "@/contexts/TaskProvider"
-import { 
-  Tag, 
-  Trash2, 
-  Plus, 
-  Search, 
-  Hash,
-  ArrowLeft 
-} from "lucide-react"
-import Link from "next/link"
-import { toast } from "sonner"
+"use client";
+
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useTags } from "@/contexts/TagsProvider";
+import { useTasks } from "@/contexts/TaskProvider";
+import { filteredTags } from "@/lib/uiHelpers";
+import { Tag, Trash2, Plus, Search, Hash, ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { toast } from "sonner";
 
 export default function TagsPage() {
-  const { tags, addTag, fetchTags } = useTags()
-  const { tasks } = useTasks()
-  const [nome, setNome] = useState("")
-  const [searchTerm, setSearchTerm] = useState("")
-  const [isAdding, setIsAdding] = useState(false)
+  const { tags, addTag, fetchTags } = useTags();
+  const { tasks } = useTasks();
+  const [nome, setNome] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
 
   const handleAdd = async () => {
     if (!nome.trim()) {
-      toast.error("Por favor, insira um nome para a tag")
-      return
+      toast.error("Por favor, insira um nome para a tag");
+      return;
     }
 
     // Check if tag already exists
-    const tagExists = tags.some(tag => 
-      tag.nome.toLowerCase() === nome.trim().toLowerCase()
-    )
-    
+    const tagExists = tags.some(
+      (tag) => tag.nome.toLowerCase() === nome.trim().toLowerCase()
+    );
+
     if (tagExists) {
-      toast.error("Esta tag já existe")
-      return
+      toast.error("Esta tag já existe");
+      return;
     }
 
-    setIsAdding(true)
+    setIsAdding(true);
     try {
-      await addTag(nome.trim())
-      setNome("")
-      toast.success("Tag adicionada com sucesso!")
+      await addTag(nome.trim());
+      setNome("");
+      toast.success("Tag adicionada com sucesso!");
     } catch (error) {
-      toast.error("Erro ao adicionar tag")
+      toast.error("Erro ao adicionar tag");
     } finally {
-      setIsAdding(false)
+      setIsAdding(false);
     }
-  }
+  };
 
   const handleDelete = async (id: string, tagName: string) => {
     try {
       await fetch(`http://127.0.0.1:8000/tags/${id}`, {
         method: "DELETE",
-      })
-      await fetchTags()
-      toast.success(`Tag "${tagName}" removida com sucesso!`)
+      });
+      await fetchTags();
+      toast.success(`Tag "${tagName}" removida com sucesso!`);
     } catch (error) {
-      toast.error("Erro ao remover tag")
+      toast.error("Erro ao remover tag");
     }
-  }
+  };
 
   const getTagUsageCount = (tagName: string) => {
-    return tasks.filter(task => 
-      task.tags?.includes(tagName)
-    ).length
-  }
-
-  const filteredTags = tags.filter(tag =>
-    tag.nome.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+    return tasks.filter((task) => task.tags?.includes(tagName)).length;
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleAdd()
+    if (e.key === "Enter") {
+      handleAdd();
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
@@ -87,8 +77,8 @@ export default function TagsPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <Link href="/tasks">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="icon"
               className="hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-700"
             >
@@ -127,7 +117,7 @@ export default function TagsPage() {
                     disabled={isAdding}
                   />
                 </div>
-                <Button 
+                <Button
                   onClick={handleAdd}
                   disabled={!nome.trim() || isAdding}
                   className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 min-w-[120px]"
@@ -182,23 +172,23 @@ export default function TagsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
                 <Hash className="w-5 h-5 text-blue-500" />
-                Suas Tags ({filteredTags.length})
+                Suas Tags ({filteredTags(tags, searchTerm).length})
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {filteredTags.length > 0 ? (
+              {filteredTags(tags, searchTerm).length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                  {filteredTags.map((tag) => {
-                    const usageCount = getTagUsageCount(tag.nome)
+                  {filteredTags(tags, searchTerm).map((tag) => {
+                    const usageCount = getTagUsageCount(tag.nome);
                     return (
-                      <Card 
-                        key={tag._id} 
+                      <Card
+                        key={tag._id}
                         className="group hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-white to-gray-50 dark:from-slate-800 dark:to-slate-700 border border-gray-200 dark:border-gray-600"
                       >
                         <CardContent className="p-4">
                           <div className="flex flex-col space-y-3">
                             <div className="flex items-center justify-between">
-                              <Badge 
+                              <Badge
                                 variant="outline"
                                 className="bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700 font-medium"
                               >
@@ -214,16 +204,17 @@ export default function TagsPage() {
                                 <Trash2 className="w-4 h-4" />
                               </Button>
                             </div>
-                            
+
                             <div className="text-sm text-gray-500 dark:text-gray-400">
                               <span className="font-medium text-blue-600 dark:text-blue-400">
                                 {usageCount}
-                              </span> tarefa{usageCount !== 1 ? 's' : ''}
+                              </span>{" "}
+                              tarefa{usageCount !== 1 ? "s" : ""}
                             </div>
                           </div>
                         </CardContent>
                       </Card>
-                    )
+                    );
                   })}
                 </div>
               ) : (
@@ -247,8 +238,8 @@ export default function TagsPage() {
                       <p className="text-gray-500 dark:text-gray-400 mb-4">
                         Crie sua primeira tag para organizar suas tarefas
                       </p>
-                      <Button 
-                        onClick={() => document.querySelector('input')?.focus()}
+                      <Button
+                        onClick={() => document.querySelector("input")?.focus()}
                         className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
                       >
                         <Plus className="w-4 h-4 mr-2" />
@@ -263,5 +254,5 @@ export default function TagsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

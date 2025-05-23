@@ -1,7 +1,8 @@
 // tasklist-mongodb/src/app/dashboard/page.tsx
+
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useTasks } from "@/contexts/TaskProvider"
 import { useTags } from "@/contexts/TagsProvider"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
