@@ -190,7 +190,9 @@ export default function TaskDetailPage() {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 pb-4">
+                {" "}
+                {/* Removed relative and pb-20 */}
                 {isEditing ? (
                   <div className="space-y-4">
                     <div>
@@ -248,93 +250,102 @@ export default function TaskDetailPage() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-                        {task.titulo}
-                      </h2>
-                      <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-lg">
-                        {task.desc || "Nenhuma descrição fornecida."}
-                      </p>
+                    {/* Title and Description */}
+                    <div className="flex items-center justify-between flex-wrap gap-x-4 gap-y-2 mb-4">
+                      <div className="flex-grow">
+                        {/* Title and Description block */}
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                          {task.titulo}
+                        </h2>
+                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-lg">
+                          {task.desc || "Nenhuma descrição fornecida."}
+                        </p>
+                      </div>
+                      <div className="flex-shrink-0 mt-2">
+                        <Badge
+                          className={`px-3 py-2 text-sm ${getStatusColor(
+                            task.status
+                          )}`}
+                        >
+                          {getStatusIcon(task.status)}
+                          <span className="ml-2">{task.status}</span>
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Status Combobox, Current Status Badge and Date Info in one row */}
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <div className="w-full md:w-auto flex-grow">
+                        <Select
+                          value={task.status}
+                          onValueChange={async (value) => {
+                            setIsUpdatingStatus(true);
+                            await handleStatusChange(
+                              id,
+                              value,
+                              updateTask,
+                              setTask,
+                              setIsUpdatingStatus
+                            );
+                            setIsUpdatingStatus(false);
+                          }}
+                          disabled={isUpdatingStatus}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pendente">
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-yellow-500" />
+                                Pendente
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="em progresso">
+                              <div className="flex items-center gap-2">
+                                <PlayCircle className="w-4 h-4 text-blue-500" />
+                                Em progresso
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="completada">
+                              <div className="flex items-center gap-2">
+                                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                                Completada
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Current Status Badge and Creation Date */}
+                      <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 mt-4 md:mt-0">
+                        {task.created_at && (
+                          <>
+                            <Calendar className="w-5 h-5 ml-2" />{" "}
+                            {/* Added ml-2 for spacing */}
+                            <div>
+                              <p className="text-sm font-medium">Criada em</p>
+                              <p className="text-sm">
+                                {new Date(task.created_at).toLocaleDateString(
+                                  "pt-BR",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )}
+                              </p>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
-
-                {/* Status and Date Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        className={`px-3 py-1 ${getStatusColor(task.status)}`}
-                      >
-                        {getStatusIcon(task.status)}
-                        <span className="ml-2">{task.status}</span>
-                      </Badge>
-                    </div>
-                    <Select
-                      value={task.status}
-                      onValueChange={async (value) => {
-                        setIsUpdatingStatus(true);
-                        await handleStatusChange(
-                          id,
-                          value,
-                          updateTask,
-                          setTask,
-                          setIsUpdatingStatus
-                        );
-                        setIsUpdatingStatus(false);
-                      }}
-                      disabled={isUpdatingStatus}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pendente">
-                          <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-yellow-500" />
-                            Pendente
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="em progresso">
-                          <div className="flex items-center gap-2">
-                            <PlayCircle className="w-4 h-4 text-blue-500" />
-                            Em progresso
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="completada">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4 text-green-500" />
-                            Completada
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {task.created_at && (
-                    <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
-                      <Calendar className="w-5 h-5" />
-                      <div>
-                        <p className="text-sm font-medium">Criada em</p>
-                        <p className="text-sm">
-                          {new Date(task.created_at).toLocaleDateString(
-                            "pt-BR",
-                            {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            }
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
               </CardContent>
             </Card>
-
             {/* Comments Section */}
             <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm shadow-xl">
               <CardHeader>

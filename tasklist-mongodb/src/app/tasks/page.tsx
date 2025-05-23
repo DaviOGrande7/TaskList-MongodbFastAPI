@@ -71,7 +71,7 @@ export default function TasksPage() {
                 placeholder="Buscar tarefas..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-12 border-2 border-gray-200 dark:border-gray-700"
+                className="pl-10 h-9  border-2 border-gray-200 dark:border-gray-700"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -121,7 +121,7 @@ export default function TasksPage() {
                 className="block group"
               >
                 <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-200 border-0">
-                  <CardContent className="p-6">
+                  <CardContent className="px-6">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -139,7 +139,7 @@ export default function TasksPage() {
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
                         <Badge
-                          className={`px-3 py-1 ${getStatusColor(task.status)}`}
+                          className={`px-3 py-2 ${getStatusColor(task.status)}`}
                         >
                           {task.status}
                         </Badge>
