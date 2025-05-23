@@ -257,7 +257,7 @@ export default function Dashboard() {
                           <p className="font-medium text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                             {task.titulo}
                           </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 overflow">
                             {task.desc}
                           </p>
                         </div>

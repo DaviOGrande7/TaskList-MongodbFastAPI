@@ -149,7 +149,7 @@ export default function TagsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Search */}
             <Card className="lg:col-span-2 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm shadow-xl">
-              <CardContent className="p-6">
+              <CardContent className="p-3">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <Input
@@ -164,9 +164,9 @@ export default function TagsPage() {
 
             {/* Stats */}
             <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm shadow-xl">
-              <CardContent className="p-6">
+              <CardContent>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-500 mb-2">
+                  <div className="text-3xl font-bold text-purple-500">
                     {tags.length}
                   </div>
                   <div className="text-gray-600 dark:text-gray-300">
@@ -187,7 +187,7 @@ export default function TagsPage() {
             </CardHeader>
             <CardContent>
               {filteredTags.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                   {filteredTags.map((tag) => {
                     const usageCount = getTagUsageCount(tag.nome)
                     return (

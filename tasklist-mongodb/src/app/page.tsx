@@ -35,24 +35,16 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
+    <div className="min-h-scren bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]" />
-        <div className="relative px-8 py-16 sm:py-24">
+        <div className="relative px-8 py-16">
           <div className="text-center">
             <div className="flex justify-center mb-6">
-              <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl shadow-lg">
-                <Sparkles className="w-8 h-8 text-white" />
-              </div>
             </div>
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-6xl">
-              Task Manager
+              Lista de Tarefas
             </h1>
-            <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Organize your tasks efficiently with our modern, intuitive task management system.
-              Create, track, and complete your goals with ease.
-            </p>
           </div>
         </div>
       </div>
@@ -61,7 +53,7 @@ export default function Home() {
       <div className="relative px-8 pb-16">
         <div className="mx-auto max-w-2xl">
           <Card className="backdrop-blur-sm bg-white/70 dark:bg-slate-900/70 border-0 shadow-2xl">
-            <CardHeader className="text-center pb-6">
+            <CardHeader className="text-center">
               <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white flex items-center justify-center gap-2">
                 <Plus className="w-6 h-6 text-blue-500" />
                 Criar Nova Tarefa

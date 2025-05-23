@@ -23,10 +23,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <TasksProvider>
         <TagsProvider>
           <body className={inter.className}>
-              <Sidebar />
-                <main className="ml-16 p-6">
-                  {children}
-                </main>
+              <main className="ml-16">
+                <Sidebar />
+                {children}
+              </main>
               <Toaster />
           </body>
         </TagsProvider>
