@@ -1,18 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useEffect, useState } from "react"
-
-export interface Tag {
-  _id: string
-  nome: string
-}
-
-interface TagsContextData {
-  tags: Tag[]
-  fetchTags: () => Promise<void>
-  addTag: (nome: string) => Promise<void>
-  addTagToTask: (taskId: string, tag: string) => Promise<void>
-}
+import { Tag, TagsContextData } from "@/Interfaces/TagsInterfaces"
 
 const TagsContext = createContext<TagsContextData | undefined>(undefined)
 

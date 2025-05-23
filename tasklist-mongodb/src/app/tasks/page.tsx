@@ -21,14 +21,11 @@ import {
 
 export default function TasksPage() {
   const { tasks, fetchTasks, deleteTask, updateTask } = useTasks()
-  const [loading, setLoading] = useState(true)
+  const { tags, addTagToTask } = useTags()
+  const [loading] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  const { tags, addTagToTask } = useTags()
 
-  useEffect(() => {
-    fetchTasks().finally(() => setLoading(false))
-  }, [fetchTasks])
 
   const getStatusIcon = (status: string) => {
     switch (status) {

@@ -23,13 +23,9 @@ import {
 import Link from "next/link"
 
 export default function Dashboard() {
-  const { tasks, fetchTasks } = useTasks()
-  const { tags, fetchTags } = useTags()
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    Promise.all([fetchTasks(), fetchTags()]).finally(() => setLoading(false))
-  }, [fetchTasks, fetchTags])
+  const { tasks } = useTasks()
+  const { tags } = useTags()
+  const [loading] = useState(false)
 
   // Calculate statistics
   const totalTasks = tasks.length
