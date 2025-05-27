@@ -1,3 +1,5 @@
+# pip install fastapi motor uvicorn
+
 from fastapi import FastAPI, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -23,7 +25,7 @@ colecao_tags = db["tags"]
 
 # --- TAGS ---
 
-# cria coleção em /tags
+# cria/lê coleção em /tags
 @app.get("/tags")
 async def list_tags():
     tags = []
@@ -50,7 +52,7 @@ async def delete_tag(id: str):
 
 # --- TAREFAS ---
 
-# cria coleção em /tarefas
+# cria/lê coleção em /tarefas
 @app.get("/tarefas")
 async def list_tasks():
     tarefas = []
