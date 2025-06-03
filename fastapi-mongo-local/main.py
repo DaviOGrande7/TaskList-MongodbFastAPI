@@ -62,7 +62,7 @@ async def create_tag(tag: Tag):
 async def delete_tag(id: str):
     result = await tags.delete_tag(colecao_tags, id)
     # Atualizar métricas porque tags podem ter sido removidas das tarefas
-    await redis_metrics.atualizar_metricas_redis_single_user(colecao, redis_pool)
+    await redis_metrics.atualizar_metricas_redis(colecao, redis_pool)
     return result
 
 # coleção tarefas
@@ -75,7 +75,7 @@ async def create_task(tarefa: Tarefa):
     """Criar nova tarefa + atualizar métricas"""
     result = await tasks.create_task(colecao, tarefa)
     print("📝 Nova tarefa criada - atualizando métricas...")
-    await redis_metrics.atualizar_metricas_redis_single_user(colecao, redis_pool)
+    await redis_metrics.atualizar_metricas_redis(colecao, redis_pool)
     return result
 
 @app.get("/tarefas/{id}")
@@ -87,7 +87,7 @@ async def update_task(id: str, updates: dict = Body(...)):
     """Atualizar tarefa + atualizar métricas"""
     result = await tasks.update_task(colecao, id, updates)
     print(f"✏️ Tarefa {id} atualizada - atualizando métricas...")
-    await redis_metrics.atualizar_metricas_redis_single_user(colecao, redis_pool)
+    await redis_metrics.atualizar_metricas_redis(colecao, redis_pool)
     return result
 
 @app.delete("/tarefas/{id}")
@@ -95,7 +95,7 @@ async def delete_task(id: str):
     """Deletar tarefa + atualizar métricas"""
     result = await tasks.delete_task(colecao, id)
     print(f"🗑️ Tarefa {id} deletada - atualizando métricas...")
-    await redis_metrics.atualizar_metricas_redis_single_user(colecao, redis_pool)
+    await redis_metrics.atualizar_metricas_redis(colecao, redis_pool)
     return result
 
 @app.post("/tarefas/{id}/comments")
@@ -103,7 +103,7 @@ async def add_comment(id: str, comment: dict):
     """Adicionar comentário + atualizar métricas"""
     result = await tasks.add_comment(colecao, id, comment)
     print(f"💬 Comentário adicionado à tarefa {id} - atualizando métricas...")
-    await redis_metrics.atualizar_metricas_redis_single_user(colecao, redis_pool)
+    await redis_metrics.atualizar_metricas_redis(colecao, redis_pool)
     return result
 
 @app.post("/tarefas/{id}/tags")
@@ -111,7 +111,7 @@ async def add_tag_to_task(id: str, tag: dict):
     """Adicionar tag à tarefa + atualizar métricas"""
     result = await tasks.add_tag_to_task(colecao, id, tag)
     print(f"🏷️ Tag adicionada à tarefa {id} - atualizando métricas...")
-    await redis_metrics.atualizar_metricas_redis_single_user(colecao, redis_pool)
+    await redis_metrics.atualizar_metricas_redis(colecao, redis_pool)
     return result
 
 # coleção métricas (Redis)

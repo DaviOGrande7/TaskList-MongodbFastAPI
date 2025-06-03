@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import redis.asyncio as redis
 from motor.motor_asyncio import AsyncIOMotorCollection
 
-async def atualizar_metricas_redis_single_user(colecao_tarefas: AsyncIOMotorCollection, redis_pool: redis.Redis,):
+async def atualizar_metricas_redis(colecao_tarefas: AsyncIOMotorCollection, redis_pool: redis.Redis,):
     status_counts = {"pendente": 0, "em progresso": 0, "completada": 0}
     tags_count = {}
     tarefas_concluidas_por_dia = {}
