@@ -47,7 +47,7 @@ async def shutdown_event():
         await redis_pool.close()
         print("🔌 Conexão com o Redis fechada.")
 
-# === ROUTES TAGS ===
+# coleçao tags
 @app.get("/tags")
 async def list_tags():
     return await tags.list_tags(colecao_tags)
@@ -65,7 +65,7 @@ async def delete_tag(id: str):
     await redis_metrics.atualizar_metricas_redis_single_user(colecao, redis_pool)
     return result
 
-# === ROUTES TAREFAS ===
+# coleção tarefas
 @app.get("/tarefas")
 async def list_tasks():
     return await tasks.list_tasks(colecao)
@@ -114,10 +114,9 @@ async def add_tag_to_task(id: str, tag: dict):
     await redis_metrics.atualizar_metricas_redis_single_user(colecao, redis_pool)
     return result
 
-# === ROUTES MÉTRICAS ===
+# coleção métricas (Redis)
 @app.get("/metricas/status-tarefas")
 async def obter_status_tarefas():
-    """Obter contagem de tarefas por status"""
     chaves_status = ["pendente", "em progresso", "completada"]
     resultado = {}
     for status in chaves_status:
@@ -127,7 +126,6 @@ async def obter_status_tarefas():
 
 @app.get("/metricas/tarefas-concluidas-por-dia")
 async def obter_tarefas_concluidas_por_dia():
-    """Obter tarefas concluídas por dia (últimos 7 dias)"""
     from datetime import datetime, timedelta
     resultado = {}
     hoje = datetime.now()
@@ -141,14 +139,12 @@ async def obter_tarefas_concluidas_por_dia():
 
 @app.get("/metricas/top-tags")
 async def obter_top_tags():
-    """Obter top 10 tags mais utilizadas"""
     chave_zset = "user:default:tags:top"
     tags_raw = await redis_pool.zrevrange(chave_zset, 0, 9, withscores=True)
     return [{"tag": tag, "contagem": int(score)} for tag, score in tags_raw]
 
 @app.get("/metricas/produtividade")
 async def obter_metricas_produtividade():
-    """Obter métricas de produtividade"""
     chave_produtividade = "user:default:stats:productivity"
     dados = await redis_pool.hgetall(chave_produtividade) 
     
