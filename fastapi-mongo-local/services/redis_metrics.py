@@ -112,7 +112,7 @@ async def inicializar_metricas_redis(
     
     if not exists:
         print("📊 Primeira execução - calculando métricas iniciais...")
-        await atualizar_metricas_redis_single_user(colecao_tarefas, redis_pool)
+        await atualizar_metricas_redis(colecao_tarefas, redis_pool)
     else:
         print("✅ Métricas já existem no Redis")
 
