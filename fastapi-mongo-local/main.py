@@ -1,13 +1,12 @@
-# pip install fastapi motor uvicorn
-
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
-from bson import ObjectId
-from datetime import datetime
+import redis.asyncio as redis
 
-from classes import Tarefa, Tag;
+from classes import Tarefa, Tag
+from services import tags, tasks, redis_metrics
 
+# - Configuração do FastAPI
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -17,106 +16,144 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# - Conexão do MongoDB
 client = AsyncIOMotorClient("mongodb://localhost:27017")
 db = client["lista_tarefas"]
 
 colecao = db["tarefas"]
 colecao_tags = db["tags"]
 
-# --- TAGS ---
+# - Conexão do Redis
+REDIS_URL = "redis://localhost:6379/0"
+redis_pool = None 
 
-# cria/lê coleção em /tags
+@app.on_event("startup")
+async def startup_event():
+    global redis_pool
+    redis_pool = redis.from_url(REDIS_URL, encoding="utf-8", decode_responses=True)
+    try:
+        await redis_pool.ping()
+        print("✅ Conectado ao Redis com sucesso!")
+        
+        # Inicializar métricas na primeira execução
+        await redis_metrics.inicializar_metricas_redis(colecao, redis_pool)
+        
+    except Exception as e:
+        print(f"❌ Erro ao conectar ao Redis: {e}")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    if redis_pool:
+        await redis_pool.close()
+        print("🔌 Conexão com o Redis fechada.")
+
+# === ROUTES TAGS ===
 @app.get("/tags")
 async def list_tags():
-    tags = []
-    async for tag in colecao_tags.find():
-        tag["_id"] = str(tag["_id"])
-        tags.append(tag)
-    return tags
+    return await tags.list_tags(colecao_tags)
 
-# cria metodo de post de tags
 @app.post("/tags")
 async def create_tag(tag: Tag):
-    if await colecao_tags.find_one({"nome": tag.nome}):
-        raise HTTPException(status_code=400, detail="Tag já existe")
-    resultado = await colecao_tags.insert_one(tag.model_dump())
-    return {"id": str(resultado.inserted_id)}
+    result = await tags.create_tag(colecao_tags, tag)
+    # Tags não afetam métricas de tarefas diretamente
+    return result
 
-# cria metodo de deleção de tags
 @app.delete("/tags/{id}")
 async def delete_tag(id: str):
-    result = await colecao_tags.delete_one({"_id": ObjectId(id)})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Tag não encontrada")
-    return {"msg": "Tag deletada"}
+    result = await tags.delete_tag(colecao_tags, id)
+    # Atualizar métricas porque tags podem ter sido removidas das tarefas
+    await redis_metrics.atualizar_metricas_redis_single_user(colecao, redis_pool)
+    return result
 
-# --- TAREFAS ---
-
-# cria/lê coleção em /tarefas
+# === ROUTES TAREFAS ===
 @app.get("/tarefas")
 async def list_tasks():
-    tarefas = []
-    async for tarefa in colecao.find():
-        tarefa["_id"] = str(tarefa["_id"])
-        if "created_at" in tarefa:
-            tarefa["created_at"] = tarefa["created_at"].isoformat()
-        tarefas.append(tarefa)
-    return tarefas
+    return await tasks.list_tasks(colecao)
 
-# cria metodo de post de tarefas
 @app.post("/tarefas")
 async def create_task(tarefa: Tarefa):
-    tarefa_dict = tarefa.model_dump()
-    resultado = await colecao.insert_one(tarefa_dict)
-    return {"id": str(resultado.inserted_id)}
+    """Criar nova tarefa + atualizar métricas"""
+    result = await tasks.create_task(colecao, tarefa)
+    print("📝 Nova tarefa criada - atualizando métricas...")
+    await redis_metrics.atualizar_metricas_redis_single_user(colecao, redis_pool)
+    return result
 
-# cria um endereço dedicado para pegar uma tarefa
 @app.get("/tarefas/{id}")
 async def get_task(id: str):
-    try:
-        tarefa = await colecao.find_one({"_id": ObjectId(id)})
-    except:
-        raise HTTPException(status_code=400, detail="ID inválido")
-    if not tarefa:
-        raise HTTPException(status_code=404, detail="Tarefa não encontrada")
-    tarefa["_id"] = str(tarefa["_id"])
-    if "created_at" in tarefa:
-        tarefa["created_at"] = tarefa["created_at"].isoformat()
-    return tarefa
+    return await tasks.get_task(colecao, id)
 
-# cria metodo de update de tarefas
 @app.put("/tarefas/{id}")
 async def update_task(id: str, updates: dict = Body(...)):
-    result = await colecao.update_one(
-        {"_id": ObjectId(id)},
-        {"$set": updates}
-    )
-    if result.modified_count == 0:
-        raise HTTPException(status_code=404, detail="Tarefa não encontrada ou sem mudanças")
-    return {"msg": "Tarefa atualizada"}
+    """Atualizar tarefa + atualizar métricas"""
+    result = await tasks.update_task(colecao, id, updates)
+    print(f"✏️ Tarefa {id} atualizada - atualizando métricas...")
+    await redis_metrics.atualizar_metricas_redis_single_user(colecao, redis_pool)
+    return result
 
-# cria metodo de deleção de tarefas
 @app.delete("/tarefas/{id}")
 async def delete_task(id: str):
-    result = await colecao.delete_one({"_id": ObjectId(id)})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Tarefa não encontrada")
-    return {"msg": "Tarefa deletada"}
+    """Deletar tarefa + atualizar métricas"""
+    result = await tasks.delete_task(colecao, id)
+    print(f"🗑️ Tarefa {id} deletada - atualizando métricas...")
+    await redis_metrics.atualizar_metricas_redis_single_user(colecao, redis_pool)
+    return result
 
-# cria metodo que adiciona comentario na tarefa
 @app.post("/tarefas/{id}/comments")
 async def add_comment(id: str, comment: dict):
-    await colecao.update_one(
-        {"_id": ObjectId(id)},
-        {"$push": {"comments": {"text": comment["text"], "created_at": datetime.now()}}}
-    )
-    return {"msg": "Comentário adicionado"}
+    """Adicionar comentário + atualizar métricas"""
+    result = await tasks.add_comment(colecao, id, comment)
+    print(f"💬 Comentário adicionado à tarefa {id} - atualizando métricas...")
+    await redis_metrics.atualizar_metricas_redis_single_user(colecao, redis_pool)
+    return result
 
-# cria metodo que adiciona tag na tarefa
 @app.post("/tarefas/{id}/tags")
 async def add_tag_to_task(id: str, tag: dict):
-    await colecao.update_one(
-        {"_id": ObjectId(id)},
-        {"$addToSet": {"tags": tag["tag"]}}
-    )
-    return {"msg": "Tag adicionada"}
+    """Adicionar tag à tarefa + atualizar métricas"""
+    result = await tasks.add_tag_to_task(colecao, id, tag)
+    print(f"🏷️ Tag adicionada à tarefa {id} - atualizando métricas...")
+    await redis_metrics.atualizar_metricas_redis_single_user(colecao, redis_pool)
+    return result
+
+# === ROUTES MÉTRICAS ===
+@app.get("/metricas/status-tarefas")
+async def obter_status_tarefas():
+    """Obter contagem de tarefas por status"""
+    chaves_status = ["pendente", "em progresso", "completada"]
+    resultado = {}
+    for status in chaves_status:
+        val = await redis_pool.get(f"user:default:tasks:status:{status}")
+        resultado[status] = int(val) if val else 0
+    return resultado
+
+@app.get("/metricas/tarefas-concluidas-por-dia")
+async def obter_tarefas_concluidas_por_dia():
+    """Obter tarefas concluídas por dia (últimos 7 dias)"""
+    from datetime import datetime, timedelta
+    resultado = {}
+    hoje = datetime.now()
+    
+    for i in range(7):
+        dia = (hoje - timedelta(days=i)).strftime("%Y-%m-%d")
+        val = await redis_pool.get(f"user:default:tasks:completed:{dia}")
+        resultado[dia] = int(val) if val else 0
+    
+    return resultado
+
+@app.get("/metricas/top-tags")
+async def obter_top_tags():
+    """Obter top 10 tags mais utilizadas"""
+    chave_zset = "user:default:tags:top"
+    tags_raw = await redis_pool.zrevrange(chave_zset, 0, 9, withscores=True)
+    return [{"tag": tag, "contagem": int(score)} for tag, score in tags_raw]
+
+@app.get("/metricas/produtividade")
+async def obter_metricas_produtividade():
+    """Obter métricas de produtividade"""
+    chave_produtividade = "user:default:stats:productivity"
+    dados = await redis_pool.hgetall(chave_produtividade) 
+    
+    return {
+        "tempo_medio_conclusao": float(dados.get("tempo_medio_conclusao", 0)),
+        "tarefas_criadas_hoje": int(dados.get("tarefas_criadas_hoje", 0)),
+        "taxa_conclusao_semanal": float(dados.get("taxa_conclusao_semanal", 0)),
+    }
